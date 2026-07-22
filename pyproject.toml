@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ados-ml"
+version = "0.1.0"
+description = "Multi-task ADOS score prediction from multimodal session features"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scikit-learn",
+  "scipy",
+  "matplotlib",
+  "seaborn",
+  "pyyaml",
+  "openpyxl",
+  "tqdm",
+  "torch",
+  "sentence-transformers",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

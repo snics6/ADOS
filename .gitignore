@@ -1,0 +1,49 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+*:Zone.Identifier
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw multimodal data and labels (keep docs only)
+data/*
+!data/README.md
+
+# Experiment outputs / features / runs
+outputs/**
+!outputs/.gitkeep
+
+# Model / cache artifacts
+*.h5
+*.ckpt
+*.pt
+*.pth
+*.onnx
+wandb/
+mlruns/
+.cache/
+tmp/
+
+# Secrets
+.env
+*.xlsx:Zone.Identifier

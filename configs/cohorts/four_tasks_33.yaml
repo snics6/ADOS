@@ -1,0 +1,51 @@
+# Cohort: IDs (including d1_*) with all four target task segments present.
+# Tasks: pretend play (3), interactive play (4), birthday party (11), snack (12).
+name: four_tasks_33
+n: 33
+participant_ids:
+  # non-d
+  - "020401"
+  - "020404"
+  - "020410"
+  - "020411"
+  - "020422"
+  - "020442"
+  - "020443"
+  - "020472"
+  - "020473"
+  - "020475"
+  - "020489"
+  - "020491"
+  - "020495"
+  - "020505"
+  - "020521"
+  - "020534"
+  - "020537"
+  - "020539"
+  - "020541"
+  - "020542"
+  # d1_*
+  - "d1_406"
+  - "d1_420"
+  - "d1_446"
+  - "d1_450"
+  - "d1_451"
+  - "d1_454"
+  - "d1_458"
+  - "d1_464"
+  - "d1_467"
+  - "d1_476"
+  - "d1_501"
+  - "d1_502"
+  - "d1_504"
+
+# Pose/face role labels are swapped relative to speech speaker labels for these IDs.
+ce_swap_ids:
+  - "020404"
+  - "020422"
+  - "020443"
+  - "020534"
+  - "020541"
+  - "d1_420"
+  - "d1_446"
+  - "d1_450"
