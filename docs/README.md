@@ -1,7 +1,9 @@
-# Design documents for the multi-task ADOS experiments.
+# docs
 
-| Doc | Content |
-|-----|---------|
-| [experimental_design.md](experimental_design.md) | Cohort, targets, CV, constraints |
-| [features.md](features.md) | Confidence weights and feature IDs |
-| [losses_and_heads.md](losses_and_heads.md) | Heads, losses, attention, ablations |
+| ファイル | 内容 |
+|---|---|
+| `実験手順書_個別特徴と課題差.md` | **現行の実験1〜4の正本**（2026-08-18）．手続きと多重比較の範囲．群・本の除外・解像度・点数のまたぎを含む |
+| `これまでの知見まとめ.md` | 第0〜3世代の結論の1枚索引 |
+| `old/` | 前世代の手順・結果、および現行手順書に吸収した草稿 |
+
+コード・数値結果のアーカイブは `old/` と `old_files/` を参照。

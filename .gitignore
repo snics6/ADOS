@@ -25,13 +25,20 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Raw multimodal data and labels (keep docs only)
+# Raw multimodal data and labels (keep the data folder note only)
 data/*
 !data/README.md
 
-# Experiment outputs / features / runs
-outputs/**
-!outputs/.gitkeep
+# Experiment outputs, including extracted feature tables
+outputs/
+
+# Previous generations and old drafts
+old/
+old_files/
+docs/old/
+
+# Copyrighted paper PDFs (keep local notes in references/)
+references/papers/*.pdf
 
 # Model / cache artifacts
 *.h5
@@ -46,4 +53,3 @@ tmp/
 
 # Secrets
 .env
-*.xlsx:Zone.Identifier

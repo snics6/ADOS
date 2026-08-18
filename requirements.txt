@@ -7,7 +7,3 @@ seaborn>=0.13
 pyyaml>=6.0
 openpyxl>=3.1
 tqdm>=4.66
-torch>=2.2
-sentence-transformers>=3.0
-jupyter>=1.0
-ipython>=8.0

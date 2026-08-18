@@ -1,76 +1,58 @@
-# ADOS multimodal score prediction
+# ADOS-exam
 
-Video-derived multimodal features (face, pose, speech) are used to predict
-ADOS-2 Module 2 scores in a multi-task setting.
+ADOS-2 Module 2 録画からの自動評価・分析リポジトリ。
 
-## Repository layout
+## 現行（第4世代）
+
+個別特徴の発見・回帰による確認・課題差（実験1・2・3・4）。
+
+手順: 特徴を一度出す → 実験1・2・3・4はその表を読む。
 
 ```
-configs/          Experiment and data-split configs (YAML)
-docs/             Design notes (features, protocol)
-src/ados_ml/      Python package
-scripts/          CLI entry points
-notebooks/        Ad-hoc analysis (optional)
-outputs/          Run artifacts (gitignored)
-tests/            Unit tests
-data/             Raw features and labels (local)
+./venv/bin/python -u scripts/extract_task_features.py
+./venv/bin/python scripts/run_exp1_univariate.py
+./venv/bin/python -u scripts/run_exp1_target_overlap.py
+./venv/bin/python -u scripts/run_exp2_ridge.py
+./venv/bin/python -u scripts/run_exp3_transplant.py --labels-only
+./venv/bin/python -u scripts/run_exp3_transplant.py
+./venv/bin/python -u scripts/run_exp3_resolution.py
+./venv/bin/python -u scripts/run_exp4_pool.py
+./venv/bin/python -u scripts/run_group_check.py
+./venv/bin/python -u scripts/run_drop_book_story.py
 ```
 
-## Setup
+| 何 | 入口 | 書き先 |
+|---|---|---|
+| 特徴（動き・発話の時間構造） | `src/ados_extract/dynamics/` | `outputs/features/dynamics/features_task.csv` |
+| 特徴（時間窓・返事・身振り・テキスト） | `src/ados_extract/windows.py` | `outputs/features/windows/features_task.csv` |
+| 実験1 | `scripts/run_exp1_univariate.py` | `outputs/exp1/` |
+| 点数のまたぎ | `scripts/run_exp1_target_overlap.py` | `outputs/exp1/target_overlap_*.csv` |
+| 実験2 | `scripts/run_exp2_ridge.py` | `outputs/exp2/` |
+| 実験3 | `scripts/run_exp3_transplant.py` | `outputs/exp3/` |
+| 実験3の解像度 | `scripts/run_exp3_resolution.py` | `outputs/exp3_resolution/` |
+| 実験4 | `scripts/run_exp4_pool.py` | `outputs/exp4/` |
+| 群の確認 | `scripts/run_group_check.py` | `outputs/group_check/` |
+| 本のストーリーを除く | `scripts/run_drop_book_story.py` | `outputs/drop_book_story/` |
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
-```
+- 手順書: [`docs/実験手順書_個別特徴と課題差.md`](docs/実験手順書_個別特徴と課題差.md)
+- 過去知見の要約: [`docs/これまでの知見まとめ.md`](docs/これまでの知見まとめ.md)
+- コホート: `configs/cohorts/features_63.yaml`（n=63）
 
-Cursor / VS Code uses `venv` via `.vscode/settings.json`.
+2026-08-18 時点: 抽出・実験1〜4・点数のまたぎ・解像度・群の確認・本のストーリーを除く確認は済．列平均の旧実験3は [`old/src/ados_ffm/exp3_nearfar.py`](old/src/ados_ffm/exp3_nearfar.py)．
 
-## Cohort (current)
+## アーカイブ
 
-- IDs (including `d1_*`) that have all four task segments detected:
-  birthday party, snack, pretend play, interactive play (`n=33`).
-- Subject list: `configs/cohorts/four_tasks_33.yaml`
+| 世代 | 場所 |
+|---|---|
+| 第0世代（〜2026-07） | `old_files/00_pre_direction1/` |
+| 第1世代（マトリクス / Phase） | `old_files/01_direction1_v1_v2/` |
+| 第2世代（セグメント・動態・安定性） | `old_files/02_ados_seg_202608/` |
+| 第3世代・旧実験2/3・整理前の第4世代出力 | [`old/`](old/README.md) |
 
-## Targets
+索引: [`old_files/README.md`](old_files/README.md)
 
-| Target | Type | Notes |
-|--------|------|-------|
-| SA | regression | Social Affect |
-| RRB | regression | Restricted / Repetitive Behavior |
-| C2 | ordinal | Imagination / creativity; explain via pretend-play segment |
-| B1 | binary (0 vs 2) | Unusual eye contact (no score-1 in this cohort) |
-| B12 | ordinal | Overall quality of rapport |
+## その他
 
-## Design constraints (summary)
-
-- Use only the four labeled task intervals.
-- Predict from **child** and **child–examiner dyad** features.
-- Detection / visibility quality is used only as **aggregation confidence weights**, not as predictors.
-- Evaluation: 4-fold CV. Hardware target: NVIDIA A5000.
-- Heads / losses / mandatory explanations: `docs/losses_and_heads.md`.
-
-See `docs/experimental_design.md` and `docs/features.md`.
-
-## Typical workflow
-
-```bash
-# 1. Build per-subject task-level feature tables
-python scripts/extract_features.py --config configs/default.yaml
-
-# 2. Train / evaluate (4-fold + ablations + sklearn baseline)
-python scripts/train.py --config configs/default.yaml --device cuda
-
-# 3. Print run summary JSON
-python scripts/evaluate.py --run-dir outputs/runs/<run_id>
-```
-
-Outputs are written under `outputs/<run_id>/` (metrics, predictions, configs snapshot).
-Features: `outputs/features/<stamp>/`. Runs: `outputs/runs/<stamp>/`.
-
-## Data
-
-- Features: `data/<participant_id>/` (see `data/README.md`)
-- Labels: `data/ADOS2_result_2.xlsx` (Module 2 sheet)
-- Participant IDs in labels may use `d1-402`; feature folders use `d1_402`. Normalize before join.
+- 生データ: `data/`
+- 参考文献: `references/`
+- 詳細な旧ドキュメント: `docs/old/`
