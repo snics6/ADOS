@@ -103,6 +103,7 @@ def extract_participant(
     min_task_sec: float = 30.0,
     halves: bool = False,
     session_halves: bool = False,
+    task_segments: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     norm = normalize_participant_id(pid)
     path = data_root / pid / f"{pid}_multimodal_session_v1.json"
@@ -110,7 +111,7 @@ def extract_participant(
         doc = json.load(fh)
     ss = build_session_series(doc["timeline"], norm)
     speech = doc.get("speech_segments") or []
-    segments = doc.get("task_segments") or []
+    segments = task_segments if task_segments is not None else (doc.get("task_segments") or [])
 
     rows: list[dict[str, Any]] = []
     if session_halves:
@@ -205,12 +206,18 @@ def extract_cohort(
     min_task_sec: float = 30.0,
     halves: bool = False,
     session_halves: bool = False,
+    task_segments_by_pid: dict[str, list[dict[str, Any]]] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     task_rows: list[dict[str, Any]] = []
     sess_rows: list[dict[str, Any]] = []
     failed: list[str] = []
     for pid in tqdm(participant_ids, desc="dynamics"):
         try:
+            override = None
+            if task_segments_by_pid is not None:
+                override = task_segments_by_pid.get(str(pid)) or task_segments_by_pid.get(
+                    normalize_participant_id(pid)
+                )
             rows, sess = extract_participant(
                 pid,
                 data_root,
@@ -218,6 +225,7 @@ def extract_cohort(
                 min_task_sec=min_task_sec,
                 halves=halves,
                 session_halves=session_halves,
+                task_segments=override,
             )
         except Exception as exc:  # noqa: BLE001
             failed.append(f"{pid}: {exc}")

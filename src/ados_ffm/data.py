@@ -1,4 +1,4 @@
-"""Shared data helpers for experiments 1–4."""
+"""Shared data helpers for experiments 1–3."""
 
 from __future__ import annotations
 
@@ -11,19 +11,19 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 
-TASKS: tuple[int, ...] = (11, 12, 3, 4, 13, 6, 1, 7, 2, 8, 9)
+# Manual canonical segmentation (data/task_segments.json): task_id 1–10.
+TASKS: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 TASK_JA: dict[int, str] = {
-    11: "誕生日パーティ",
-    12: "おやつ",
-    3: "ごっこ遊び",
-    4: "共同で行う相互的な遊び",
-    13: "ものを用いたルーティンの期待反応",
-    6: "共同注意への反応",
     1: "構成課題",
-    7: "実演課題",
-    2: "呼名反応",
-    8: "絵の叙述",
-    9: "本のストーリーの説明",
+    2: "ごっこあそび",
+    3: "共同注意",
+    4: "実演",
+    5: "絵の説明",
+    6: "本のストーリーの説明",
+    7: "自由遊び",
+    8: "誕生日",
+    9: "おやつ",
+    10: "ルーティン",
 }
 
 STEMS: tuple[str, ...] = (

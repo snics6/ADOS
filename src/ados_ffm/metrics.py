@@ -1,4 +1,4 @@
-"""Benjamini–Hochberg FDR for experiments 1–3."""
+"""Benjamini–Hochberg FDR. Used as a result in experiments 1 and 2. Experiment 3 still writes q to CSV but does not report tests."""
 
 from __future__ import annotations
 

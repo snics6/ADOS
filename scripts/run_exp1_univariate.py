@@ -35,7 +35,6 @@ from ados_ffm.data import (  # noqa: E402
     load_labels,
 )
 from ados_ffm.exp1_univariate import (  # noqa: E402
-    MAIN_TASKS,
     MIN_N,
     N_BOOT,
     N_NULL,
@@ -143,7 +142,7 @@ def main() -> None:
         args.n_boot = min(args.n_boot, 20)
         args.n_null = min(args.n_null, 5)
         args.n_perm = min(args.n_perm, 50)
-        task_ids = (12, 4)
+        task_ids = (7, 9)
         if args.out == ROOT / "outputs/exp1":
             args.out = ROOT / "outputs/_smoke/exp1"
     elif args.tasks:
@@ -208,7 +207,6 @@ def main() -> None:
         "n_null": args.n_null,
         "n_boot": args.n_boot,
         "min_n": MIN_N,
-        "main_tasks": list(MAIN_TASKS),
         "catalog": "frozen34 + win_/rsp_/ges_/txt_ (no keywords)",
         "thresholds": thresholds,
         "n_null_values": n_null_used,
@@ -233,7 +231,7 @@ def main() -> None:
     stage_a["threshold"] = [
         thresholds[r["target"]][str(int(r["task"]))] for _, r in stage_a.iterrows()
     ]
-    stage_a["candidate"] = (stage_a["stability"] >= stage_a["threshold"]) & (stage_a["rho"] > 0)
+    stage_a["candidate"] = stage_a["stability"] >= stage_a["threshold"]
     stage_a.to_csv(args.out / "stage_a.csv", index=False)
     print(
         f"stage A  rows={len(stage_a)}  candidates={int(stage_a['candidate'].sum())}",
@@ -299,7 +297,6 @@ def main() -> None:
 def _meta(args, task_ids, t0, n_cand: int) -> dict:
     return {
         "tasks": list(task_ids),
-        "main_tasks": list(MAIN_TASKS),
         "targets": [t["name"] for t in TARGETS],
         "n_boot": args.n_boot,
         "n_null": args.n_null,
@@ -307,8 +304,8 @@ def _meta(args, task_ids, t0, n_cand: int) -> dict:
         "threshold_quantile": THRESH_Q,
         "min_n": MIN_N,
         "metric": "spearman",
-        "stage_a": "half_split_positive_rho_ge_0.20",
-        "perm": "one_sided_positive",
+        "stage_a": "half_split_same_sign_abs_rho_ge_0.20",
+        "perm": "two_sided_abs_rho",
         "fdr_family": "task_x_target",
         "same_sample_confirmation": True,
         "catalog_n_frozen": len(FEATURE_COLS),
@@ -316,6 +313,8 @@ def _meta(args, task_ids, t0, n_cand: int) -> dict:
         "windows": str(args.windows),
         "seconds": time.time() - t0,
         "n_candidates": n_cand,
+        "task_segments": "data/task_segments.json",
+        "task_segments_source": "manual_canonical",
     }
 
 

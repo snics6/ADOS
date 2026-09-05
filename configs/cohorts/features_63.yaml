@@ -1,18 +1,17 @@
 # Direction 1 (task × item map) — version 2
-# Usable multimodal IDs after exclusions (n=63).
+# Usable multimodal IDs after exclusions (n=59).
 
-name: dir1_v2_features_63
+name: dir1_v2_features_59
 description: >
   Direction 1 v2 cohort: multimodal_session_v1 IDs under data/, excluding
-  the hard-excluded list below. New IDs relative to dir1_v1 are the 14
-  added on 2026-07-31 (d1_509…g1_525).
+  the hard-excluded list below. Task intervals come only from
+  data/task_segments.json (manual canonical segmentation).
 
 participant_ids:
   - "020401"
   - "020410"
   - "020411"
   - "020422"
-  - "020423"
   - "020426"
   - "020428"
   - "020436"
@@ -31,10 +30,8 @@ participant_ids:
   - "020529"
   - "020534"
   - "020537"
-  - "020538"
   - "020539"
   - "020540"
-  - "020541"
   - "020542"
   - "020543"
   - "d1_402"
@@ -42,7 +39,6 @@ participant_ids:
   - "d1_406"
   - "d1_420"
   - "d1_446"
-  - "d1_447"
   - "d1_450"
   - "d1_451"
   - "d1_453"
@@ -85,13 +81,16 @@ excluded_ids:
   - "020475"
   - "020521"
   - "020522"
+  - "020423"
+  - "020538"
+  - "020541"
+  - "d1_447"
 
 # Vision role already flipped in pose/face/unified for these IDs.
 ce_swap_ids:
   - "020422"
   - "020443"
   - "020534"
-  - "020541"
   - "d1_402"
   - "d1_405"
   - "d1_420"

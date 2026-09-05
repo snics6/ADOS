@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Experiment 2: Ridge on Exp1 hits (k=1 or 2). Writes outputs/exp2/.
+"""Experiment 2 auxiliary: Ridge on Exp1 hits as-is (k=1 or 2).
+
+Not the mainline. Mainline is scripts/run_exp2.py → outputs/exp2/.
+This script writes outputs/exp2_ridge/.
 
     ./venv/bin/python -u scripts/run_exp2_ridge.py
     ./venv/bin/python -u scripts/run_exp2_ridge.py --smoke
@@ -41,7 +44,7 @@ from ados_ffm.kinds import feature_kind  # noqa: E402
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", type=Path, default=ROOT / "outputs/exp2")
+    ap.add_argument("--out", type=Path, default=ROOT / "outputs/exp2_ridge")
     ap.add_argument("--hits", type=Path, default=ROOT / "outputs/exp1/hits_main.csv")
     ap.add_argument("--features", type=Path, default=DEFAULT_FEATURES)
     ap.add_argument("--windows", type=Path, default=DEFAULT_WINDOWS)
@@ -56,9 +59,9 @@ def main() -> None:
     n_perm = args.n_perm
     if args.smoke:
         n_perm = min(n_perm, 5)
-        task_ids = (12, 4)
-        if args.out == ROOT / "outputs/exp2":
-            args.out = ROOT / "outputs/_smoke/exp2"
+        task_ids = (7, 9)
+        if args.out == ROOT / "outputs/exp2_ridge":
+            args.out = ROOT / "outputs/_smoke/exp2_ridge"
     if args.tasks:
         task_ids = tuple(int(x) for x in args.tasks.split(",") if x.strip())
 
@@ -78,7 +81,7 @@ def main() -> None:
             f"k={j['k']} n={j['n']}  {j['cols']}",
             flush=True,
         )
-    print(f"exp2  jobs={len(jobs)}  skipped={len(skipped)}  n_perm={n_perm}", flush=True)
+    print(f"exp2_ridge (aux)  jobs={len(jobs)}  skipped={len(skipped)}  n_perm={n_perm}", flush=True)
     t0 = time.time()
     got = Parallel(n_jobs=args.n_jobs, verbose=5)(
         delayed(run_one)(cell, n_perm) for cell in jobs
@@ -105,6 +108,8 @@ def main() -> None:
     pd.DataFrame(feat_rows).to_csv(args.out / "selected_features.csv", index=False)
 
     meta = {
+        "role": "auxiliary",
+        "method": "ridge_exp1_hits_as_is",
         "n_perm": n_perm,
         "n_jobs_ran": len(jobs),
         "n_skipped": len(skipped),

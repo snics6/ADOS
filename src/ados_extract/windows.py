@@ -26,10 +26,13 @@ EVENT_TYPES = (
     "hand_near_face",
     "leaning_away",
 )
+# Keyed by the current task_id (1-10, ados_ffm.data.TASKS), not the ADOS-2
+# protocol's 14-activity numbering (see references/ados2_module2_item_task_map.md).
+# The old j=4 entry (joint interactive play) had no keyword mapping here since
+# that activity has no independent segment among the current 10 tasks.
 TASK_KEYWORDS: dict[int, tuple[str, ...]] = {
-    12: ("食べ", "おいしい", "ください", "おやつ", "ジュース", "パン", "クッキー"),
-    3: ("なって", "ごっこ", "だよ", "わん", "ぶー", "先生"),
-    4: ("順番", "一緒", "どうぞ", "次", "番"),
+    9: ("食べ", "おいしい", "ください", "おやつ", "ジュース", "パン", "クッキー"),  # おやつ
+    2: ("なって", "ごっこ", "だよ", "わん", "ぶー", "先生"),  # ごっこあそび
 }
 
 ASR_RISKY_PREFIXES = ("txt_", "kw_")
@@ -169,10 +172,15 @@ def _is_backchannel(text: str, dur: float) -> bool:
     return t in BACKCHANNEL_TEXTS
 
 
-def extract_one(session: dict[str, Any], task_id: int) -> dict[str, float] | None:
+def extract_one(
+    session: dict[str, Any],
+    task_id: int,
+    *,
+    task_segments: list[dict[str, Any]] | None = None,
+) -> dict[str, float] | None:
     segs = [
         t
-        for t in session.get("task_segments") or []
+        for t in (task_segments if task_segments is not None else session.get("task_segments") or [])
         if int(t.get("task_id", -1)) == int(task_id)
     ]
     ivs = _merge_intervals(
@@ -307,6 +315,8 @@ def extract_windows(
     data_root: Path,
     pids: list[str],
     task_ids: tuple[int, ...],
+    *,
+    task_segments_by_pid: dict[str, list[dict[str, Any]]] | None = None,
 ) -> pd.DataFrame:
     rows = []
     for pid in pids:
@@ -314,8 +324,11 @@ def extract_windows(
         if not path.exists():
             continue
         session = json.loads(path.read_text(encoding="utf-8"))
+        override = None
+        if task_segments_by_pid is not None:
+            override = task_segments_by_pid.get(str(pid))
         for tid in task_ids:
-            feat = extract_one(session, tid)
+            feat = extract_one(session, tid, task_segments=override)
             if feat is None:
                 continue
             feat["participant_id"] = str(pid)

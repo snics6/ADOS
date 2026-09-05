@@ -1,1 +1,1 @@
-"""Experiment 1–4 helpers (univariate screen, Ridge, transplant, pool)."""
+"""Experiment 1–3 helpers (univariate screen, LOPO / Ridge, task-pair algebra)."""

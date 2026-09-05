@@ -202,16 +202,65 @@ def conversation_features(
             out["dyad_turn_convergence"] = float(d1 - d2)
 
     # Exchange chains: how far a back-and-forth runs before it breaks.
-    chain, chains = 1, []
+    out.update(chain_initiator_features_from_turns(turns, dur))
+    return out
+
+
+CHAIN_GAP_SEC = 3.0
+
+
+def _exchange_chains(turns: list[dict]) -> tuple[np.ndarray, list[str]]:
+    """Lengths and initiator (first speaker) of each exchange chain."""
+    if not turns:
+        return np.array([], float), []
+    chain, chains, inits = 1, [], []
+    current_init = str(turns[0]["speaker"])
     for prev, cur in zip(turns, turns[1:]):
-        if prev["speaker"] != cur["speaker"] and cur["start"] - prev["end"] <= 3.0:
+        if prev["speaker"] != cur["speaker"] and cur["start"] - prev["end"] <= CHAIN_GAP_SEC:
             chain += 1
-        else:
-            chains.append(chain)
-            chain = 1
+            continue
+        chains.append(chain)
+        inits.append(current_init)
+        chain = 1
+        current_init = str(cur["speaker"])
     chains.append(chain)
-    ch = np.array(chains, float)
+    inits.append(current_init)
+    return np.asarray(chains, float), inits
+
+
+def chain_initiator_features_from_turns(turns: list[dict], dur: float) -> dict[str, float]:
+    """Overall chain stats plus a split by who started the chain."""
+    out: dict[str, float] = {}
+    ch, inits = _exchange_chains(turns)
+    if ch.size == 0 or dur <= 1.0:
+        return out
     out["dyad_chain_mean"] = float(ch.mean())
     out["dyad_chain_max"] = float(ch.max())
     out["dyad_chain_ge4_per_min"] = float((ch >= 4).sum() / (dur / 60.0))
+    out["dyad_chain_n"] = float(ch.size)
+    for role, key in (("examiner", "exam"), ("child", "child")):
+        mask = np.array([s == role for s in inits], dtype=bool)
+        sub = ch[mask]
+        out[f"dyad_chain_n_{key}_init"] = float(sub.size)
+        if sub.size == 0:
+            out[f"dyad_chain_mean_{key}_init"] = float("nan")
+            out[f"dyad_chain_max_{key}_init"] = float("nan")
+            out[f"dyad_chain_ge4_per_min_{key}_init"] = 0.0
+            continue
+        out[f"dyad_chain_mean_{key}_init"] = float(sub.mean())
+        out[f"dyad_chain_max_{key}_init"] = float(sub.max())
+        out[f"dyad_chain_ge4_per_min_{key}_init"] = float((sub >= 4).sum() / (dur / 60.0))
     return out
+
+
+def chain_initiator_features(
+    speech_segments: Sequence[dict[str, Any]], t0: float, t1: float
+) -> dict[str, float]:
+    """Chain stats from speech only (no pose). Used for the initiator split."""
+    dur = float(t1 - t0)
+    if dur <= 1.0:
+        return {}
+    utts = [u for u in _clip(speech_segments, t0, t1) if u.get("speaker") in ROLES]
+    if len(utts) < 4:
+        return {}
+    return chain_initiator_features_from_turns(_turns(utts), dur)

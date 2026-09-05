@@ -1,6 +1,7 @@
-"""Experiment 2: Ridge on Exp1 FDR hits. k=1 if 1 hit, else top 2.
+"""Experiment 2 auxiliary: Ridge on Exp1 FDR hits as-is. k=1 if 1 hit, else top 2.
 
-BH family is (task × score).
+Not the mainline. Mainline is LOPO sign(ρ)·x (`ados_ffm.exp2`).
+BH family is (task × score). Writes `outputs/exp2_ridge/`.
 """
 
 from __future__ import annotations

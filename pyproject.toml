@@ -9,15 +9,16 @@ description = "ADOS-2 Module 2: per-feature discovery, Ridge confirmation, near/
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "numpy",
-  "pandas",
-  "scikit-learn",
-  "scipy",
-  "matplotlib",
-  "seaborn",
-  "pyyaml",
-  "openpyxl",
-  "tqdm",
+  "numpy==2.5.1",
+  "pandas==3.0.3",
+  "scikit-learn==1.9.0",
+  "scipy==1.18.0",
+  "matplotlib==3.11.1",
+  "seaborn==0.13.2",
+  "pyyaml==6.0.3",
+  "openpyxl==3.1.5",
+  "tqdm==4.69.0",
+  "joblib==1.5.3",
 ]
 
 [tool.setuptools.packages.find]

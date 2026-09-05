@@ -1,4 +1,4 @@
-"""Ridge CV helpers used by experiments 2, 3, and 4."""
+"""Ridge CV helpers used by the Exp2 Ridge auxiliary."""
 
 from __future__ import annotations
 

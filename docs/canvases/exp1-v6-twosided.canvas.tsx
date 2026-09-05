@@ -30,52 +30,91 @@ type Hit = {
 };
 
 const HITS: Hit[] = [
-  { task: "誕生日パーティ", target: "CSS", source: "examiner", feature: "win_examiner_turn_rate_delta", n: null, rho: 0.295884, q: 0.021978 },
-  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "win_examiner_turn_rate_delta", n: null, rho: 0.330254, q: 0.026973 },
-  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "examiner_backchannel_frac", n: null, rho: -0.292159, q: 0.035964 },
-  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "examiner_pitch_reversal_rate", n: null, rho: -0.288354, q: 0.035964 },
-  { task: "おやつ", target: "RRB", source: "examiner", feature: "examiner_roll_range", n: null, rho: -0.316534, q: 0.046753 },
-  { task: "おやつ", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_med", n: null, rho: 0.276316, q: 0.046753 },
-  { task: "おやつ", target: "RRB", source: "child", feature: "txt_child_utt_char_cv", n: null, rho: -0.272025, q: 0.046753 },
-  { task: "おやつ", target: "RRB", source: "examiner", feature: "examiner_sway_y", n: null, rho: -0.279011, q: 0.046753 },
-  { task: "おやつ", target: "RRB", source: "child", feature: "child_sway_y", n: null, rho: -0.279335, q: 0.046753 },
-  { task: "おやつ", target: "SA", source: "child", feature: "txt_child_question_frac", n: null, rho: 0.391675, q: 0.01998 },
-  { task: "おやつ", target: "SA", source: "child", feature: "rsp_child_reply_frac", n: null, rho: -0.318721, q: 0.033966 },
-  { task: "おやつ", target: "SA", source: "dyad", feature: "rsp_after_exam_gap_med", n: null, rho: 0.285729, q: 0.04662 },
-  { task: "ものを用いたルーティンの期待反応", target: "CSS", source: "dyad", feature: "rsp_after_exam_gap_med", n: null, rho: -0.336501, q: 0.031968 },
-  { task: "ものを用いたルーティンの期待反応", target: "CSS", source: "child", feature: "child_backchannel_frac", n: null, rho: -0.332633, q: 0.031968 },
-  { task: "ものを用いたルーティンの期待反応", target: "RRB", source: "child", feature: "ges_child_pointing_candidate_per_min", n: null, rho: 0.379769, q: 0.035964 },
-  { task: "共同注意への反応", target: "SA", source: "examiner", feature: "examiner_turn_rate_per_min", n: 40, rho: -0.355083, q: 0.02997 },
-  { task: "共同注意への反応", target: "SA", source: "dyad", feature: "dyad_chain_ge4_per_min", n: 40, rho: -0.349493, q: 0.033966 },
-  { task: "共同注意への反応", target: "SA", source: "dyad", feature: "dyad_silence_frac", n: 40, rho: 0.335839, q: 0.033966 },
-  { task: "実演課題", target: "CSS", source: "examiner", feature: "examiner_turn_words_mean", n: 26, rho: -0.464977, q: 0.021978 },
-  { task: "実演課題", target: "RRB", source: "child", feature: "ges_child_leaning_away_per_min", n: 29, rho: 0.477184, q: 0.008991 },
-  { task: "実演課題", target: "SA", source: "examiner", feature: "ges_examiner_fidgeting_per_min", n: 29, rho: 0.409062, q: 0.048951 },
-  { task: "実演課題", target: "SA", source: "child", feature: "win_child_turn_rate_delta", n: 29, rho: 0.385204, q: 0.048951 },
-  { task: "実演課題", target: "SA", source: "examiner", feature: "examiner_turn_words_mean", n: 26, rho: -0.42196, q: 0.048951 },
-  { task: "絵の叙述", target: "RRB", source: "child", feature: "ges_child_leaning_away_per_min", n: 21, rho: 0.527976, q: 0.021978 },
-  { task: "絵の叙述", target: "RRB", source: "child", feature: "win_child_yawvel_delta", n: 21, rho: 0.507811, q: 0.021978 },
-  { task: "絵の叙述", target: "SA", source: "dyad", feature: "dyad_motion_share_child", n: 21, rho: 0.568266, q: 0.026973 },
-  { task: "絵の叙述", target: "SA", source: "examiner", feature: "examiner_sway_y", n: 21, rho: -0.517318, q: 0.043457 },
-  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "ges_child_hand_near_face_per_min", n: 19, rho: 0.581485, q: 0.02972 },
-  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.646782, q: 0.02972 },
-  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_speech_frac", n: 18, rho: 0.60021, q: 0.02972 },
-  { task: "本のストーリーの説明", target: "CSS", source: "dyad", feature: "rsp_after_exam_gap_med", n: 18, rho: -0.534922, q: 0.02972 },
-  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_backchannel_frac", n: 17, rho: -0.556385, q: 0.033566 },
-  { task: "本のストーリーの説明", target: "CSS", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 19, rho: -0.487568, q: 0.041958 },
-  { task: "本のストーリーの説明", target: "CSS", source: "dyad", feature: "dyad_turn_dur_ratio", n: 16, rho: 0.525574, q: 0.041958 },
-  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_backchannel_frac", n: 17, rho: -0.793746, q: 0.008991 },
-  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_speech_frac", n: 18, rho: 0.703163, q: 0.011988 },
-  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "ges_child_hand_near_face_per_min", n: 19, rho: 0.715467, q: 0.011988 },
-  { task: "本のストーリーの説明", target: "RRB", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 19, rho: -0.604141, q: 0.012587 },
-  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.631784, q: 0.012587 },
-  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_med", n: 18, rho: -0.584367, q: 0.023976 },
-  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "dyad_turn_dur_ratio", n: 16, rho: 0.577618, q: 0.028971 },
-  { task: "本のストーリーの説明", target: "RRB", source: "examiner", feature: "examiner_backchannel_frac", n: 18, rho: 0.532172, q: 0.028971 },
-  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "dyad_child_speech_share", n: 18, rho: 0.529656, q: 0.028971 },
-  { task: "本のストーリーの説明", target: "SA", source: "examiner", feature: "ges_examiner_pointing_candidate_per_min", n: 19, rho: -0.595256, q: 0.01049 },
-  { task: "本のストーリーの説明", target: "SA", source: "examiner", feature: "ges_examiner_arm_extended_per_min", n: 19, rho: -0.631737, q: 0.01049 },
-  { task: "本のストーリーの説明", target: "SA", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.539764, q: 0.02997 },
+  { task: "呼名反応", target: "RRB", source: "dyad", feature: "dyad_chain_ge4_per_min", n: 22, rho: 0.5602976772145419, q: 0.0079920079920079 },
+  { task: "ごっこ遊び", target: "CSS", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 54, rho: -0.4222948798740339, q: 0.0119880119880119 },
+  { task: "ごっこ遊び", target: "CSS", source: "examiner", feature: "win_examiner_turn_rate_delta", n: 54, rho: -0.4162649656497245, q: 0.0119880119880119 },
+  { task: "ごっこ遊び", target: "CSS", source: "examiner", feature: "ges_examiner_pointing_candidate_per_min", n: 54, rho: -0.3039994717824842, q: 0.0374625374625374 },
+  { task: "ごっこ遊び", target: "CSS", source: "child", feature: "win_child_turn_rate_delta", n: 54, rho: -0.3176483468025632, q: 0.0374625374625374 },
+  { task: "ごっこ遊び", target: "CSS", source: "examiner", feature: "ges_examiner_arm_extended_per_min", n: 54, rho: -0.27372505160425, q: 0.0409590409590409 },
+  { task: "ごっこ遊び", target: "CSS", source: "child", feature: "win_child_speech_frac_delta", n: 54, rho: -0.2869180523546067, q: 0.0409590409590409 },
+  { task: "ごっこ遊び", target: "RRB", source: "examiner", feature: "win_examiner_turn_rate_delta", n: 54, rho: -0.4707453530643739, q: 0.0089910089910089 },
+  { task: "ごっこ遊び", target: "RRB", source: "examiner", feature: "ges_examiner_leaning_away_per_min", n: 54, rho: -0.4254241240594746, q: 0.0134865134865134 },
+  { task: "ごっこ遊び", target: "RRB", source: "dyad", feature: "rsp_long_silence_frac", n: 54, rho: -0.4254928974368241, q: 0.0149850149850149 },
+  { task: "ごっこ遊び", target: "RRB", source: "child", feature: "win_child_speech_frac_delta", n: 54, rho: -0.3398898518156431, q: 0.0179820179820179 },
+  { task: "ごっこ遊び", target: "RRB", source: "child", feature: "win_child_turn_rate_delta", n: 54, rho: -0.3493613393332985, q: 0.0179820179820179 },
+  { task: "ごっこ遊び", target: "RRB", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 54, rho: -0.3333790139305616, q: 0.0179820179820179 },
+  { task: "ごっこ遊び", target: "RRB", source: "examiner", feature: "examiner_turn_rate_per_min", n: 54, rho: 0.2721289093820171, q: 0.0439560439560439 },
+  { task: "ごっこ遊び", target: "RRB", source: "examiner", feature: "ges_examiner_pointing_candidate_per_min", n: 54, rho: -0.2781627643975564, q: 0.0439560439560439 },
+  { task: "ごっこ遊び", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_p90", n: 54, rho: -0.2869591512313695, q: 0.0439560439560439 },
+  { task: "ごっこ遊び", target: "SA", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 54, rho: -0.4140267788761179, q: 0.0059940059940059 },
+  { task: "ごっこ遊び", target: "SA", source: "examiner", feature: "win_examiner_turn_rate_delta", n: 54, rho: -0.3184592421535803, q: 0.0179820179820179 },
+  { task: "共同で行う相互的な遊び", target: "CSS", source: "dyad", feature: "dyad_chain_max", n: 47, rho: -0.3612432990188096, q: 0.0179820179820179 },
+  { task: "共同で行う相互的な遊び", target: "CSS", source: "dyad", feature: "rsp_child_reply_frac", n: 51, rho: -0.3589961620808822, q: 0.0179820179820179 },
+  { task: "共同で行う相互的な遊び", target: "CSS", source: "child", feature: "win_child_yawvel_delta", n: 50, rho: 0.2989250417038659, q: 0.0379620379620379 },
+  { task: "共同で行う相互的な遊び", target: "RRB", source: "examiner", feature: "ges_examiner_pointing_candidate_per_min", n: 51, rho: 0.4753683399834631, q: 0.0059940059940059 },
+  { task: "共同で行う相互的な遊び", target: "RRB", source: "examiner", feature: "ges_examiner_arm_extended_per_min", n: 51, rho: 0.384978722766432, q: 0.0089910089910089 },
+  { task: "共同で行う相互的な遊び", target: "RRB", source: "dyad", feature: "rsp_child_reply_frac", n: 51, rho: -0.3884964596033879, q: 0.0119880119880119 },
+  { task: "共同で行う相互的な遊び", target: "RRB", source: "child", feature: "txt_child_utt_char_cv", n: 49, rho: 0.3441058281178129, q: 0.0227772227772227 },
+  { task: "共同で行う相互的な遊び", target: "RRB", source: "child", feature: "win_child_turn_rate_delta", n: 51, rho: 0.333107414687828, q: 0.0227772227772227 },
+  { task: "共同で行う相互的な遊び", target: "SA", source: "dyad", feature: "dyad_chain_max", n: 47, rho: -0.3313829435255058, q: 0.0494505494505494 },
+  { task: "共同で行う相互的な遊び", target: "SA", source: "child", feature: "win_child_yawvel_delta", n: 50, rho: 0.3010478802624418, q: 0.0494505494505494 },
+  { task: "共同で行う相互的な遊び", target: "SA", source: "dyad", feature: "dyad_turn_rate_per_min", n: 47, rho: -0.2919605387421286, q: 0.0499500499500499 },
+  { task: "共同注意への反応", target: "CSS", source: "dyad", feature: "dyad_turn_rate_per_min", n: 40, rho: -0.4500934373812044, q: 0.0299700299700299 },
+  { task: "共同注意への反応", target: "RRB", source: "examiner", feature: "ges_examiner_hand_near_face_per_min", n: 42, rho: 0.3645430223944339, q: 0.0259740259740259 },
+  { task: "共同注意への反応", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_med", n: 41, rho: -0.3898183911255919, q: 0.0259740259740259 },
+  { task: "共同注意への反応", target: "RRB", source: "dyad", feature: "rsp_long_silence_frac", n: 41, rho: -0.3470607959864821, q: 0.0319680319680319 },
+  { task: "共同注意への反応", target: "SA", source: "dyad", feature: "dyad_turn_rate_per_min", n: 40, rho: -0.479513237316312, q: 0.0119880119880119 },
+  { task: "共同注意への反応", target: "SA", source: "child", feature: "ges_child_hand_near_face_per_min", n: 42, rho: 0.4365178641873353, q: 0.0149850149850149 },
+  { task: "共同注意への反応", target: "SA", source: "child", feature: "child_turn_rate_per_min", n: 40, rho: -0.3916858078570387, q: 0.0299700299700299 },
+  { task: "共同注意への反応", target: "SA", source: "examiner", feature: "examiner_turn_rate_per_min", n: 40, rho: -0.3550831841940977, q: 0.0299700299700299 },
+  { task: "共同注意への反応", target: "SA", source: "dyad", feature: "dyad_chain_ge4_per_min", n: 40, rho: -0.3494931568075489, q: 0.0339660339660339 },
+  { task: "共同注意への反応", target: "SA", source: "dyad", feature: "dyad_silence_frac", n: 40, rho: 0.3358385057733761, q: 0.0339660339660339 },
+  { task: "実演課題", target: "CSS", source: "examiner", feature: "examiner_turn_words_mean", n: 26, rho: -0.4649771090063622, q: 0.0219780219780219 },
+  { task: "実演課題", target: "RRB", source: "child", feature: "ges_child_leaning_away_per_min", n: 29, rho: 0.4771844575066214, q: 0.0089910089910089 },
+  { task: "実演課題", target: "SA", source: "examiner", feature: "examiner_turn_words_mean", n: 26, rho: -0.4219600198062397, q: 0.0489510489510489 },
+  { task: "実演課題", target: "SA", source: "examiner", feature: "ges_examiner_fidgeting_per_min", n: 29, rho: 0.4090620959594241, q: 0.0489510489510489 },
+  { task: "実演課題", target: "SA", source: "child", feature: "win_child_turn_rate_delta", n: 29, rho: 0.3852042823433216, q: 0.0489510489510489 },
+  { task: "絵の叙述", target: "RRB", source: "child", feature: "ges_child_leaning_away_per_min", n: 21, rho: 0.5279758608505342, q: 0.0219780219780219 },
+  { task: "絵の叙述", target: "RRB", source: "child", feature: "win_child_yawvel_delta", n: 21, rho: 0.5078112915959115, q: 0.0219780219780219 },
+  { task: "絵の叙述", target: "SA", source: "dyad", feature: "dyad_motion_share_child", n: 21, rho: 0.5682658606376936, q: 0.0269730269730269 },
+  { task: "絵の叙述", target: "SA", source: "examiner", feature: "examiner_sway_y", n: 21, rho: -0.5173178869253486, q: 0.0434565434565434 },
+  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_speech_frac", n: 18, rho: 0.6002104909091768, q: 0.0297202797202797 },
+  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.6467817173476824, q: 0.0297202797202797 },
+  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "ges_child_hand_near_face_per_min", n: 19, rho: 0.5814854697356918, q: 0.0297202797202797 },
+  { task: "本のストーリーの説明", target: "CSS", source: "dyad", feature: "rsp_after_exam_gap_med", n: 18, rho: -0.534921845712868, q: 0.0297202797202797 },
+  { task: "本のストーリーの説明", target: "CSS", source: "child", feature: "child_backchannel_frac", n: 17, rho: -0.556385060001845, q: 0.0335664335664335 },
+  { task: "本のストーリーの説明", target: "CSS", source: "dyad", feature: "dyad_turn_dur_ratio", n: 16, rho: 0.5255738049628411, q: 0.0419580419580419 },
+  { task: "本のストーリーの説明", target: "CSS", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 19, rho: -0.4875680046783928, q: 0.0419580419580419 },
+  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_backchannel_frac", n: 17, rho: -0.7937460244969139, q: 0.0089910089910089 },
+  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_speech_frac", n: 18, rho: 0.7031633602207793, q: 0.0119880119880119 },
+  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "ges_child_hand_near_face_per_min", n: 19, rho: 0.7154669753117213, q: 0.0119880119880119 },
+  { task: "本のストーリーの説明", target: "RRB", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.631784356766515, q: 0.0125874125874125 },
+  { task: "本のストーリーの説明", target: "RRB", source: "examiner", feature: "win_examiner_speech_frac_delta", n: 19, rho: -0.6041407644655868, q: 0.0125874125874125 },
+  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_med", n: 18, rho: -0.5843665341002411, q: 0.0239760239760239 },
+  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "dyad_child_speech_share", n: 18, rho: 0.5296555180883792, q: 0.0289710289710289 },
+  { task: "本のストーリーの説明", target: "RRB", source: "dyad", feature: "dyad_turn_dur_ratio", n: 16, rho: 0.5776177144209592, q: 0.0289710289710289 },
+  { task: "本のストーリーの説明", target: "RRB", source: "examiner", feature: "examiner_backchannel_frac", n: 18, rho: 0.5321717850012481, q: 0.0289710289710289 },
+  { task: "本のストーリーの説明", target: "SA", source: "examiner", feature: "ges_examiner_arm_extended_per_min", n: 19, rho: -0.6317366060320145, q: 0.0104895104895104 },
+  { task: "本のストーリーの説明", target: "SA", source: "examiner", feature: "ges_examiner_pointing_candidate_per_min", n: 19, rho: -0.5952560414583348, q: 0.0104895104895104 },
+  { task: "本のストーリーの説明", target: "SA", source: "child", feature: "child_turn_words_mean", n: 17, rho: 0.5397639049260996, q: 0.0299700299700299 },
+  { task: "誕生日パーティ", target: "CSS", source: "examiner", feature: "win_examiner_turn_rate_delta", n: 58, rho: 0.2958844560488144, q: 0.0219780219780219 },
+  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "win_examiner_turn_rate_delta", n: 58, rho: 0.3302538978477711, q: 0.0269730269730269 },
+  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "examiner_backchannel_frac", n: 56, rho: -0.2921585423236513, q: 0.0359640359640359 },
+  { task: "誕生日パーティ", target: "SA", source: "examiner", feature: "examiner_pitch_reversal_rate", n: 56, rho: -0.2883541301111929, q: 0.0359640359640359 },
+  { task: "おやつ", target: "RRB", source: "child", feature: "child_sway_y", n: 56, rho: -0.279334848923944, q: 0.0467532467532467 },
+  { task: "おやつ", target: "RRB", source: "examiner", feature: "examiner_roll_range", n: 56, rho: -0.3165338819184566, q: 0.0467532467532467 },
+  { task: "おやつ", target: "RRB", source: "examiner", feature: "examiner_sway_y", n: 56, rho: -0.2790107527991129, q: 0.0467532467532467 },
+  { task: "おやつ", target: "RRB", source: "dyad", feature: "rsp_after_exam_gap_med", n: 56, rho: 0.2763164400397037, q: 0.0467532467532467 },
+  { task: "おやつ", target: "RRB", source: "child", feature: "txt_child_utt_char_cv", n: 56, rho: -0.272024680774974, q: 0.0467532467532467 },
+  { task: "おやつ", target: "SA", source: "child", feature: "txt_child_question_frac", n: 56, rho: 0.391675065940727, q: 0.0199800199800199 },
+  { task: "おやつ", target: "SA", source: "dyad", feature: "rsp_child_reply_frac", n: 56, rho: -0.3187212695109455, q: 0.0339660339660339 },
+  { task: "おやつ", target: "SA", source: "dyad", feature: "rsp_after_exam_gap_med", n: 56, rho: 0.2857286221728373, q: 0.0466200466200466 },
+  { task: "ものを用いたルーティンの期待反応", target: "CSS", source: "child", feature: "child_backchannel_frac", n: 45, rho: -0.3326330739932116, q: 0.0319680319680319 },
+  { task: "ものを用いたルーティンの期待反応", target: "CSS", source: "dyad", feature: "rsp_after_exam_gap_med", n: 45, rho: -0.3365008578142531, q: 0.0319680319680319 },
+  { task: "ものを用いたルーティンの期待反応", target: "RRB", source: "child", feature: "ges_child_pointing_candidate_per_min", n: 45, rho: 0.3797687169331182, q: 0.0359640359640359 },
+  { task: "ものを用いたルーティンの期待反応", target: "RRB", source: "examiner", feature: "ges_examiner_pose_frame_frac", n: 45, rho: 0.3023467493565692, q: 0.0494505494505494 },
+  { task: "ものを用いたルーティンの期待反応", target: "SA", source: "child", feature: "ges_child_pointing_candidate_per_min", n: 45, rho: -0.3196662841647039, q: 0.0329670329670329 },
+  { task: "ものを用いたルーティンの期待反応", target: "SA", source: "child", feature: "txt_child_question_frac", n: 45, rho: 0.3225863662346805, q: 0.0329670329670329 },
 ];
 
 function fmtRho(x: number): string {
@@ -91,7 +130,7 @@ export default function Exp1V6TwosidedCanvas() {
     h.task,
     h.target,
     h.source,
-    <Code key={h.feature}>{h.feature}</Code>,
+    <Code>{h.feature}</Code>,
     h.n == null ? "—" : String(h.n),
     fmtRho(h.rho),
     fmtQ(h.q),
@@ -105,23 +144,18 @@ export default function Exp1V6TwosidedCanvas() {
     <Stack gap={20}>
       <Stack gap={6}>
         <H1>実験1 · v6再分割 · 両側 Spearman</H1>
+
         <Text tone="secondary">
           2026-08-20 · 課題区間は v6（A–B–A 補正, untag 281.8 分）· 安定度は同符号
           |ρ|≥0.20 · 置換は両側 · BH は課題×得点
         </Text>
         <Row gap={8} wrap>
-          <Pill tone="info">stage A 2211</Pill>
-          <Pill tone="info">candidates 120</Pill>
-          <Pill tone="success">FDR hits 85</Pill>
-          <Pill tone="warning">ρ+ 36 / ρ− 49</Pill>
+          <Pill active>stage A 2211</Pill>
+          <Pill active>candidates 120</Pill>
+          <Pill active>FDR hits 85</Pill>
+          <Pill active>ρ+ 36 / ρ− 49</Pill>
         </Row>
       </Stack>
-
-      <Callout tone="warning" title="前回 HTML では開けなかった理由">
-        先に置いた <Code>docs/exp1-hits.html</Code>{" "}
-        はブラウザ用の静的コピーで、Cursor 本体の Canvas
-        ではありません。この画面がチャット横で開く正式な Canvas です。
-      </Callout>
 
       <H2>前回（正側のみ）との比較</H2>
       <Grid columns={2} gap={12}>
@@ -141,7 +175,7 @@ export default function Exp1V6TwosidedCanvas() {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader trailing={<Pill tone="success" size="sm">今回</Pill>}>
+          <CardHeader trailing={<Pill active size="sm">今回</Pill>}>
             両側 · v6
           </CardHeader>
           <CardBody>
@@ -151,7 +185,8 @@ export default function Exp1V6TwosidedCanvas() {
               <Stat value="85" label="FDR 当たり" tone="warning" />
             </Grid>
             <Text size="small" tone="secondary" style={{ marginTop: 10 }}>
-              同符号 |ρ|≥0.20 · 両側置換 · untag 281.8 分 · 散布図 85 枚
+              同符号 |ρ|≥0.20 · 両側置換 · untag 281.8 分 · 人数多い5課題 46 · ASR依存 4 ·
+              散布図 85 枚
             </Text>
           </CardBody>
         </Card>
@@ -167,7 +202,7 @@ export default function Exp1V6TwosidedCanvas() {
             horizontal
           />
           <Text size="small" tone="tertiary">
-            Source: outputs/exp1/meta.json · 2026-08-20 two-sided + v6 run
+            Source: outputs/exp1/hits_main.csv · 2026-08-20 two-sided + v6 run
           </Text>
         </Stack>
         <Stack gap={8}>
@@ -177,7 +212,7 @@ export default function Exp1V6TwosidedCanvas() {
               { label: "正 ρ (36)", value: 36 },
               { label: "負 ρ (49)", value: 49 },
             ]}
-            height={180}
+            size={180}
           />
           <Text size="small" tone="tertiary">
             過半が負。正側だけの前回とは一覧の顔ぶれが大きく違う。
@@ -212,16 +247,14 @@ export default function Exp1V6TwosidedCanvas() {
 
       <Stack gap={8}>
         <Row gap={8} align="center" justify="space-between">
-          <H2>当たり一覧（ログから復元 46 / 85）</H2>
-          <Pill tone="warning" size="sm">
-            不完全
+          <H2>当たり一覧（全 85 本）</H2>
+          <Pill active size="sm">
+            hits_main.csv
           </Pill>
         </Row>
-        <Callout tone="info" title="表について">
-          このクラウド環境に本番の <Code>hits_main.csv</Code>{" "}
-          が無く、前セッションのログから先頭・末尾の 46
-          行だけ復元しています。ごっこ・相互遊び・構成・呼名などの中盤は欠落。完全表は再実行環境の{" "}
-          <Code>outputs/exp1/hits_main.csv</Code> を正とします。
+        <Callout tone="info" title="出典">
+          ローカルの <Code>outputs/exp1/hits_main.csv</Code> 
+          をそのまま表示しています。行の色点は正の ρ / 負の ρ を示します。
         </Callout>
         <Table
           headers={["課題", "得点", "情報源", "特徴", "n", "ρ", "q"]}
@@ -230,11 +263,10 @@ export default function Exp1V6TwosidedCanvas() {
           columnAlign={["left", "left", "left", "left", "right", "right", "right"]}
           stickyHeader
           striped
-          style={{ maxHeight: 420 }}
+          style={{ maxHeight: 480 }}
         />
         <Text size="small" tone="tertiary">
-          行の色点: 青寄り=正の ρ / 赤寄り=負の ρ · Source: terminal log recovery ·
-          not the full 85-row CSV
+          Source: outputs/exp1/hits_main.csv · q = BH within task×target · FDR hits = 85
         </Text>
       </Stack>
 

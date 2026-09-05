@@ -1,6 +1,8 @@
-"""Kind labels for Exp2 rank-1. Used to lock Exp3/4 near/far before ρ.
+"""Kind labels for Exp2 rank-1 features.
 
-win_*_delta is a measurement style, not a kind. Kind follows the content.
+Used only to annotate the selected feature's content type in exp2/exp2_ridge
+output CSVs (the "kind" column). win_*_delta is a measurement style, not a
+kind; kind follows the content.
 """
 
 from __future__ import annotations

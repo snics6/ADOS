@@ -12,7 +12,6 @@ from ados_ffm.data import FEATURE_COLS, SOURCE_OF, apply_target_y
 from ados_extract.windows import feature_family, is_asr_risky
 from ados_ffm.metrics import bh_fdr
 
-MAIN_TASKS: tuple[int, ...] = (12, 3, 11, 4, 13)
 EXTRA_PREFIXES: tuple[str, ...] = ("win_", "rsp_", "ges_", "txt_")
 N_BOOT = 200
 N_NULL = 50
@@ -211,6 +210,7 @@ def null_stabilities_one_target(
     n_null: int,
     n_boot: int,
     seed: int,
+    positive_only: bool = False,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     y0 = np.asarray([y_by_pid[p] for p in pids_task], dtype=float)
@@ -222,7 +222,9 @@ def null_stabilities_one_target(
         for fi, pl in enumerate(payloads):
             y = np.asarray([ymap[p] for p in pl["pids"]], dtype=float)
             rng_b = np.random.default_rng(seed + 10_000 + si * 1_000 + fi)
-            st = half_stability(pl["x"], y, n_rep=n_boot, rng=rng_b)
+            st = half_stability(
+                pl["x"], y, n_rep=n_boot, rng=rng_b, positive_only=positive_only
+            )
             rows.append(
                 {
                     "shuffle": si,
@@ -239,11 +241,14 @@ def real_stabilities(
     *,
     n_boot: int,
     seed: int,
+    positive_only: bool = False,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for fi, pl in enumerate(payloads):
         rng = np.random.default_rng(seed + fi)
-        st = half_stability(pl["x"], pl["y"], n_rep=n_boot, rng=rng)
+        st = half_stability(
+            pl["x"], pl["y"], n_rep=n_boot, rng=rng, positive_only=positive_only
+        )
         rho = spearman_rho_fast(pl["x"], pl["y"])
         rows.append(
             {
@@ -265,6 +270,7 @@ def perm_one(
     *,
     n_perm: int,
     seed: int,
+    two_sided: bool = True,
 ) -> dict[str, float]:
     rng = np.random.default_rng(seed)
     obs = spearman_rho_fast(x, y)
@@ -273,7 +279,11 @@ def perm_one(
     for i in range(n_perm):
         rng.shuffle(yw)
         null[i] = spearman_rho_fast(x, yw)
-    if not np.isfinite(obs) or obs <= 0.0:
+    if not np.isfinite(obs):
+        p = float("nan")
+    elif two_sided:
+        p = two_sided_perm_p(obs, null)
+    elif obs <= 0.0:
         p = float("nan")
     else:
         extreme = int(np.sum(null >= obs))
