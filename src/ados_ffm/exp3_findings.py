@@ -16,7 +16,7 @@ import pandas as pd
 from scipy.stats import rankdata
 
 from ados_extract.dynamics.conversation import chain_initiator_features
-from ados_extract.task_segments import load_task_segments_map
+from ados_extract.task_segments import load_task_segments_map, merge_spans
 from ados_ffm.data import ROOT, TASK_JA, TASKS, load_cohort, load_labels, apply_target_y
 from ados_ffm.exp1_univariate import spearman_rho_fast
 from ados_ffm.hetero import lambda_star
@@ -539,15 +539,25 @@ def extract_chain_initiators(
         with path.open(encoding="utf-8") as fh:
             doc = json.load(fh)
         speech = doc.get("speech_segments") or []
+        # One row per (participant, task). A task that was interrupted and
+        # resumed has several annotated stretches; they are its spans, and the
+        # time between them is another activity, so they are neither separate
+        # rows nor a single hull.
+        spans_by_task: dict[int, list[tuple[float, float]]] = {}
         for s in segs_map.get(pid, []):
             tid = int(s.get("task_id", -1))
             if tid not in TASKS:
                 continue
-            t0, t1 = float(s["session_start_sec"]), float(s["session_end_sec"])
-            feat = chain_initiator_features(speech, t0, t1)
+            spans_by_task.setdefault(tid, []).append(
+                (float(s["session_start_sec"]), float(s["session_end_sec"]))
+            )
+        for tid in sorted(spans_by_task):
+            spans = merge_spans(spans_by_task[tid])
+            feat = chain_initiator_features(speech, spans)
             feat["participant_id"] = str(pid)
             feat["task_id"] = tid
-            feat["duration_sec"] = t1 - t0
+            feat["duration_sec"] = float(sum(b - a for a, b in spans))
+            feat["n_task_spans"] = float(len(spans))
             rows.append(feat)
         if (i + 1) % 10 == 0 or i + 1 == len(cohort):
             print(f"  chain-init  {i + 1}/{len(cohort)}", flush=True)
@@ -791,8 +801,10 @@ def ja_missingness(
     rows = []
     for pid in cohort:
         raw_rows = [r for r in raw.get(pid, []) if int(r.get("task_id", -1) or -1) == int(task)]
-        t0 = str(raw_rows[0].get("t0", "")).strip() if raw_rows else ""
-        t1 = str(raw_rows[0].get("t1", "")).strip() if raw_rows else ""
+        # A task can be annotated as several stretches; show them all rather
+        # than silently reporting the first one as if it were the interval.
+        t0 = " / ".join(str(r.get("t0", "")).strip() for r in raw_rows)
+        t1 = " / ".join(str(r.get("t1", "")).strip() for r in raw_rows)
         parsed = segments_for_participant(pid) or []
         has_parsed = any(int(s.get("task_id", -1)) == int(task) for s in parsed)
         has_row = pid in ja.index

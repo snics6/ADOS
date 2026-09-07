@@ -16,6 +16,16 @@ word-level transcript provides.
 Word identity is used only for counting. Japanese ASR error rate on this
 material is unmeasured, so anything that would depend on the words being
 right is left out.
+
+A task interval is a **set of disjoint spans**, not one stretch: an activity
+interrupted and resumed is annotated as several stretches, and the time in
+between belongs to whatever ran instead. Every function here therefore takes
+``spans`` rather than a ``(t0, t1)`` pair, and:
+
+* rates are divided by the union of the spans, never by the enclosing hull;
+* turns, exchange chains and floor-transfer offsets are formed **inside one
+  span only**. A silence that contains another activity is not a response
+  latency, so no pair of turns is allowed to straddle a span boundary.
 """
 
 from __future__ import annotations
@@ -31,6 +41,33 @@ TURN_MERGE_SEC = 1.0
 INITIATION_SILENCE_SEC = 2.0
 BACKCHANNEL_SEC = 1.0
 ROLES = ("child", "examiner")
+
+
+Span = tuple[float, float]
+
+
+def normalise_spans(spans: Sequence[Span] | Span) -> list[Span]:
+    """Accept one (t0, t1) pair or a sequence of them; return disjoint spans."""
+    if (
+        len(spans) == 2
+        and not isinstance(spans[0], (tuple, list))
+        and not isinstance(spans[1], (tuple, list))
+    ):
+        spans = [(float(spans[0]), float(spans[1]))]  # type: ignore[assignment]
+    xs = sorted((float(a), float(b)) for a, b in spans if float(b) > float(a))
+    if not xs:
+        return []
+    out = [xs[0]]
+    for a, b in xs[1:]:
+        if a <= out[-1][1] + 1e-6:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
+def span_total(spans: Sequence[Span]) -> float:
+    return float(sum(b - a for a, b in spans))
 
 
 def _clip(segs: Sequence[dict], t0: float, t1: float) -> list[dict]:
@@ -103,17 +140,31 @@ def _desc(v: list[float], prefix: str) -> dict[str, float]:
 
 
 def conversation_features(
-    speech_segments: Sequence[dict[str, Any]], t0: float, t1: float
+    speech_segments: Sequence[dict[str, Any]], spans: Sequence[Span] | Span
 ) -> dict[str, float]:
-    """Turn-taking timing for both speakers over [t0, t1)."""
+    """Turn-taking timing for both speakers over a set of disjoint spans."""
     out: dict[str, float] = {}
-    dur = float(t1 - t0)
+    spans = normalise_spans(spans)
+    # Rates are per minute of activity, so the denominator is the union of the
+    # spans. The hull would count the interruption as activity time.
+    dur = span_total(spans)
     if dur <= 1.0:
         return out
-    utts = [u for u in _clip(speech_segments, t0, t1) if u.get("speaker") in ROLES]
+    # Turns are built per span, so no turn merges across an interruption and
+    # no pair of turns straddles one.
+    turn_groups = [
+        _turns([u for u in _clip(speech_segments, a, b) if u.get("speaker") in ROLES])
+        for a, b in spans
+    ]
+    utts = [u for a, b in spans
+            for u in _clip(speech_segments, a, b) if u.get("speaker") in ROLES]
     if len(utts) < 4:
         return out
-    turns = _turns(utts)
+    turns = [t for g in turn_groups for t in g]
+    # Consecutive turn pairs *within* a span. Cross-span pairs are dropped:
+    # the silence between two stretches contains another activity, so it is
+    # neither a response latency nor a chance to continue a chain.
+    pairs = [(a, b) for g in turn_groups for a, b in zip(g, g[1:])]
     out["dyad_n_turns"] = float(len(turns))
     out["dyad_turn_rate_per_min"] = float(len(turns) / (dur / 60.0))
 
@@ -160,7 +211,7 @@ def conversation_features(
     # values are interruptions.
     fto = {r: [] for r in ROLES}
     initiated = {r: 0 for r in ROLES}
-    for prev, cur in zip(turns, turns[1:]):
+    for prev, cur in pairs:
         if prev["speaker"] == cur["speaker"]:
             continue
         gap = cur["start"] - prev["end"]
@@ -180,13 +231,13 @@ def conversation_features(
     et = [t["end"] - t["start"] for t in turns if t["speaker"] == "examiner"]
     if len(ct) >= 4 and len(et) >= 4:
         out["dyad_turn_dur_ratio"] = float(np.median(ct) / max(1e-6, np.median(et)))
-        pairs = [
+        adj = [
             (p["end"] - p["start"], c["end"] - c["start"])
-            for p, c in zip(turns, turns[1:])
+            for p, c in pairs
             if p["speaker"] != c["speaker"]
         ]
-        if len(pairs) >= 6:
-            a = np.array(pairs)
+        if len(adj) >= 6:
+            a = np.array(adj)
             if a[:, 0].std() > 0 and a[:, 1].std() > 0:
                 out["dyad_turn_dur_entrain"] = float(np.corrcoef(a[:, 0], a[:, 1])[0, 1])
         half = len(turns) // 2
@@ -202,36 +253,49 @@ def conversation_features(
             out["dyad_turn_convergence"] = float(d1 - d2)
 
     # Exchange chains: how far a back-and-forth runs before it breaks.
-    out.update(chain_initiator_features_from_turns(turns, dur))
+    out.update(chain_initiator_features_from_turns(turn_groups, dur))
     return out
 
 
 CHAIN_GAP_SEC = 3.0
 
 
-def _exchange_chains(turns: list[dict]) -> tuple[np.ndarray, list[str]]:
-    """Lengths and initiator (first speaker) of each exchange chain."""
-    if not turns:
-        return np.array([], float), []
-    chain, chains, inits = 1, [], []
-    current_init = str(turns[0]["speaker"])
-    for prev, cur in zip(turns, turns[1:]):
-        if prev["speaker"] != cur["speaker"] and cur["start"] - prev["end"] <= CHAIN_GAP_SEC:
-            chain += 1
+def _exchange_chains(turn_groups: Sequence[list[dict]]) -> tuple[np.ndarray, list[str]]:
+    """Lengths and initiator (first speaker) of each exchange chain.
+
+    A chain is a run of alternating turns with no gap longer than
+    ``CHAIN_GAP_SEC``. Chains are counted inside one span at a time, so a
+    stretch boundary always ends the chain in progress.
+    """
+    chains: list[int] = []
+    inits: list[str] = []
+    for turns in turn_groups:
+        if not turns:
             continue
+        chain = 1
+        current_init = str(turns[0]["speaker"])
+        for prev, cur in zip(turns, turns[1:]):
+            if (
+                prev["speaker"] != cur["speaker"]
+                and cur["start"] - prev["end"] <= CHAIN_GAP_SEC
+            ):
+                chain += 1
+                continue
+            chains.append(chain)
+            inits.append(current_init)
+            chain = 1
+            current_init = str(cur["speaker"])
         chains.append(chain)
         inits.append(current_init)
-        chain = 1
-        current_init = str(cur["speaker"])
-    chains.append(chain)
-    inits.append(current_init)
     return np.asarray(chains, float), inits
 
 
-def chain_initiator_features_from_turns(turns: list[dict], dur: float) -> dict[str, float]:
+def chain_initiator_features_from_turns(
+    turn_groups: Sequence[list[dict]], dur: float
+) -> dict[str, float]:
     """Overall chain stats plus a split by who started the chain."""
     out: dict[str, float] = {}
-    ch, inits = _exchange_chains(turns)
+    ch, inits = _exchange_chains(turn_groups)
     if ch.size == 0 or dur <= 1.0:
         return out
     out["dyad_chain_mean"] = float(ch.mean())
@@ -254,13 +318,23 @@ def chain_initiator_features_from_turns(turns: list[dict], dur: float) -> dict[s
 
 
 def chain_initiator_features(
-    speech_segments: Sequence[dict[str, Any]], t0: float, t1: float
+    speech_segments: Sequence[dict[str, Any]], spans: Sequence[Span] | Span
 ) -> dict[str, float]:
     """Chain stats from speech only (no pose). Used for the initiator split."""
-    dur = float(t1 - t0)
+    spans = normalise_spans(spans)
+    dur = span_total(spans)
     if dur <= 1.0:
         return {}
-    utts = [u for u in _clip(speech_segments, t0, t1) if u.get("speaker") in ROLES]
-    if len(utts) < 4:
+    turn_groups = [
+        _turns([u for u in _clip(speech_segments, a, b) if u.get("speaker") in ROLES])
+        for a, b in spans
+    ]
+    if sum(len(g) for g in turn_groups) < 1:
         return {}
-    return chain_initiator_features_from_turns(_turns(utts), dur)
+    n_utt = sum(
+        len([u for u in _clip(speech_segments, a, b) if u.get("speaker") in ROLES])
+        for a, b in spans
+    )
+    if n_utt < 4:
+        return {}
+    return chain_initiator_features_from_turns(turn_groups, dur)

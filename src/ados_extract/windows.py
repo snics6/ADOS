@@ -2,6 +2,13 @@
 
 Speech uses diarized speaker labels. Pose/face uses vision role labels.
 The two are never combined in one formula (ce_swap IDs disagree).
+
+A task interval is a **set of disjoint spans**: an activity that was
+interrupted and resumed is annotated as several stretches, and the time in
+between belongs to whatever ran instead. So every "per minute" here divides
+by the union of the spans, "first half" and "second half" split that union at
+its midpoint, and no pair of turns straddles a span boundary -- a silence that
+contains another activity is not a response latency.
 """
 
 from __future__ import annotations
@@ -128,17 +135,26 @@ def _union_speech(utts: list[dict], role: str) -> float:
     return float(sum(b - a for a, b in _merge_intervals(iv)))
 
 
-def _speech_window(utts: list[dict], ivs: list[tuple[float, float]], half: str) -> dict[str, float]:
+def _speech_window(
+    utts_by_iv: list[list[dict]], ivs: list[tuple[float, float]], half: str
+) -> dict[str, float]:
+    """One half of the activity. The split is the midpoint of the union of the
+    spans, so a task made of two stretches is halved by elapsed activity time
+    rather than per stretch."""
     if half == "first":
-        keep = [u for u in utts if (_progress(0.5 * (u["start"] + u["end"]), ivs) or 1) < 0.5]
-        span = 0.5 * sum(b - a for a, b in ivs)
+        def _sel(u: dict) -> bool:
+            return (_progress(0.5 * (u["start"] + u["end"]), ivs) or 1) < 0.5
     else:
-        keep = [u for u in utts if (_progress(0.5 * (u["start"] + u["end"]), ivs) or 0) >= 0.5]
-        span = 0.5 * sum(b - a for a, b in ivs)
+        def _sel(u: dict) -> bool:
+            return (_progress(0.5 * (u["start"] + u["end"]), ivs) or 0) >= 0.5
+
+    kept_by_iv = [[u for u in grp if _sel(u)] for grp in utts_by_iv]
+    keep = [u for grp in kept_by_iv for u in grp]
+    span = 0.5 * sum(b - a for a, b in ivs)
     out: dict[str, float] = {}
     if span <= 1.0:
         return out
-    turns = _turns(keep)
+    turns = [t for grp in kept_by_iv for t in _turns(grp)]
     for r in ROLES:
         out[f"{r}_speech_frac"] = _union_speech(keep, r) / span
         out[f"{r}_turn_rate"] = len([t for t in turns if t["speaker"] == r]) / (span / 60.0)
@@ -196,16 +212,20 @@ def extract_one(
     if dur < 20.0:
         return None
     minutes = dur / 60.0
-    speech = _clip_speech(session.get("speech_segments") or [], ivs)
-    turns = _turns(speech)
+    raw_speech = session.get("speech_segments") or []
+    # Clip into each span separately so that turns, and the pairs of turns the
+    # response features are built from, never cross a stretch boundary.
+    speech_by_iv = [_clip_speech(raw_speech, [iv]) for iv in ivs]
+    speech = [u for grp in speech_by_iv for u in grp]
+    turn_groups = [_turns(grp) for grp in speech_by_iv]
     row: dict[str, float] = {
         "new_duration_sec": float(dur),
         "new_n_task_spans": float(len(ivs)),
     }
 
     # --- time windows (first vs second half of covered time) ---
-    first = _speech_window(speech, ivs, "first")
-    second = _speech_window(speech, ivs, "second")
+    first = _speech_window(speech_by_iv, ivs, "first")
+    second = _speech_window(speech_by_iv, ivs, "second")
     for r in ROLES:
         a = first.get(f"{r}_speech_frac", np.nan)
         b = second.get(f"{r}_speech_frac", np.nan)
@@ -255,7 +275,8 @@ def extract_one(
     child_replies = 0
     exam_turns = 0
     gaps: list[float] = []
-    for prev, cur in zip(turns, turns[1:]):
+    pairs = [(a, b) for g in turn_groups for a, b in zip(g, g[1:])]
+    for prev, cur in pairs:
         if prev["speaker"] != "examiner":
             continue
         exam_turns += 1

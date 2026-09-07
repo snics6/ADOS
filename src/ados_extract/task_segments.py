@@ -64,18 +64,47 @@ def load_task_segments_json(path: Path | None = None) -> dict[str, list[dict[str
     return {str(k): list(v) for k, v in raw.items()}
 
 
+def merge_spans(spans: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Union of half-open intervals, as a sorted list of disjoint spans.
+
+    Touching or overlapping spans are joined; a genuine hole between two
+    stretches is kept as a hole.
+    """
+    xs = sorted((float(a), float(b)) for a, b in spans if b > a)
+    if not xs:
+        return []
+    out = [xs[0]]
+    for a, b in xs[1:]:
+        if a <= out[-1][1] + 1e-6:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
 def segments_for_participant(
     pid: str,
     *,
     path: Path | None = None,
 ) -> list[dict[str, Any]] | None:
-    """Return session-style task_segments for one participant, or None if missing."""
+    """Return session-style task_segments for one participant, or None if missing.
+
+    A task interrupted and resumed is annotated as several rows with the same
+    ``task_id``. Those rows are kept as **separate stretches** (one entry each,
+    after taking their union), never collapsed into a single ``min(t0)``..
+    ``max(t1)`` span. The convex hull would swallow whatever other activity ran
+    in between -- for one participant it spanned 53 minutes and contained seven
+    other tasks whole -- so features computed "inside" the task would be
+    measuring other tasks. Consumers must therefore treat a task interval as a
+    set of disjoint spans, not as one contiguous stretch.
+    """
     all_segs = load_task_segments_json(path)
     pid = str(pid)
     if pid not in all_segs:
         return None
 
-    by_task: dict[int, dict[str, Any]] = {}
+    spans_by_task: dict[int, list[tuple[float, float]]] = {}
+    meta_by_task: dict[int, dict[str, Any]] = {}
     for row in all_segs[pid]:
         t0s, t1s = str(row.get("t0", "")).strip(), str(row.get("t1", "")).strip()
         if not t0s or not t1s:
@@ -85,28 +114,32 @@ def segments_for_participant(
         t1 = parse_time_text(t1s)
         if t1 <= t0:
             continue
-        entry = {
-            "task_id": tid,
-            "session_start_sec": t0,
-            "session_end_sec": t1,
-            "stage": row.get("stage"),
-            "stage_ja": row.get("stage_ja") or TASK_JA.get(tid, str(tid)),
-            "relabel": "manual_canonical",
-        }
-        prev = by_task.get(tid)
-        if prev is None:
-            by_task[tid] = entry
-        else:
-            # Merge duplicate task_id rows (manual split) into one span.
-            by_task[tid] = {
-                **entry,
-                "session_start_sec": min(prev["session_start_sec"], t0),
-                "session_end_sec": max(prev["session_end_sec"], t1),
-            }
+        spans_by_task.setdefault(tid, []).append((t0, t1))
+        meta_by_task.setdefault(
+            tid,
+            {
+                "stage": row.get("stage"),
+                "stage_ja": row.get("stage_ja") or TASK_JA.get(tid, str(tid)),
+            },
+        )
 
-    if not by_task:
-        return None
-    return [by_task[tid] for tid in sorted(by_task)]
+    out: list[dict[str, Any]] = []
+    for tid in sorted(spans_by_task):
+        spans = merge_spans(spans_by_task[tid])
+        for i, (t0, t1) in enumerate(spans):
+            out.append(
+                {
+                    "task_id": tid,
+                    "session_start_sec": t0,
+                    "session_end_sec": t1,
+                    "stage": meta_by_task[tid]["stage"],
+                    "stage_ja": meta_by_task[tid]["stage_ja"],
+                    "relabel": "manual_canonical",
+                    "stretch_index": i,
+                    "n_stretches": len(spans),
+                }
+            )
+    return out or None
 
 
 def load_task_segments_map(

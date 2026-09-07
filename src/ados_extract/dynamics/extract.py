@@ -24,9 +24,10 @@ from ados_extract.dynamics._support import ALL_TASK_IDS
 from ados_extract.dynamics.conversation import conversation_features
 from ados_extract.dynamics.crossmodal import crossmodal_features
 from ados_extract.dynamics.kinematics import body_features, head_features
-from ados_extract.dynamics.series import GRID_SEC, build_session_series
+from ados_extract.dynamics.series import GRID_SEC, build_session_series, contiguous_runs
 from ados_extract.dynamics.sync import sync_features
 from ados_extract.dynamics._support import normalize_participant_id
+from ados_extract.task_segments import merge_spans
 
 KEY_COLS = ("participant_id", "task_id")
 META_COLS = (
@@ -46,13 +47,36 @@ META_COLS = (
 )
 
 
-def _window_features(ss, speech, mask, t0: float, t1: float) -> dict[str, float]:
+def _task_spans(segments, task_id: int) -> list[tuple[float, float]]:
+    """Union of the annotated stretches of one task, as disjoint spans.
+
+    An activity that was interrupted and resumed has several rows with the
+    same ``task_id``. They stay separate: the hull between them holds another
+    activity, so it is not part of this task.
+    """
+    return merge_spans(
+        [
+            (float(s["session_start_sec"]), float(s["session_end_sec"]))
+            for s in segments
+            if int(s.get("task_id", -1)) == int(task_id)
+        ]
+    )
+
+
+def _mask_spans(t, mask) -> list[tuple[float, float]]:
+    """Spans covered by a frame mask, for masks with no annotation behind them."""
+    return [
+        (float(t[a]), float(t[b - 1]) + GRID_SEC) for a, b in contiguous_runs(mask, 1)
+    ]
+
+
+def _window_features(ss, speech, mask, spans) -> dict[str, float]:
     f: dict[str, float] = {}
     for rs in (ss.child, ss.examiner):
         f.update(head_features(rs, mask))
         f.update(body_features(rs, mask))
     f.update(sync_features(ss, mask))
-    f.update(conversation_features(speech, t0, t1))
+    f.update(conversation_features(speech, spans))
     f.update(crossmodal_features(ss, speech, mask))
     return f
 
@@ -120,14 +144,12 @@ def extract_participant(
         # the comparison with which tasks landed on which side.
         acc = [np.zeros(ss.n, bool), np.zeros(ss.n, bool)]
         for tid in task_ids:
-            segs = [s for s in segments if int(s.get("task_id", -1)) == tid]
-            if not segs:
+            spans = _task_spans(segments, tid)
+            if not spans:
                 continue
             m = np.zeros(ss.n, bool)
-            for s in segs:
-                m |= (ss.t >= float(s["session_start_sec"])) & (
-                    ss.t < float(s["session_end_sec"])
-                )
+            for a, b in spans:
+                m |= (ss.t >= a) & (ss.t < b)
             if m.sum() * GRID_SEC < min_task_sec:
                 continue
             for i, hm in enumerate(_halves(m)):
@@ -135,66 +157,58 @@ def extract_participant(
         for i, hm in enumerate(acc):
             if not hm.any():
                 continue
-            ht = ss.t[hm]
             row = {"participant_id": norm, "task_id": -1, "half": i}
             row.update(_meta(ss, hm))
-            row.update(_window_features(ss, speech, hm, float(ht[0]), float(ht[-1])))
+            row.update(_window_features(ss, speech, hm, _mask_spans(ss.t, hm)))
             rows.append(row)
         full = acc[0] | acc[1]
         sess: dict[str, Any] = {"participant_id": norm, "task_id": -1}
         if full.any():
-            ft = ss.t[full]
             sess.update(_meta(ss, full))
-            sess.update(
-                _window_features(ss, speech, full, float(ft[0]), float(ft[-1]))
-            )
+            sess.update(_window_features(ss, speech, full, _mask_spans(ss.t, full)))
         return rows, sess
 
     for tid in task_ids:
-        segs = [s for s in segments if int(s.get("task_id", -1)) == tid]
-        if not segs:
+        spans = _task_spans(segments, tid)
+        if not spans:
             continue
         mask = np.zeros(ss.n, bool)
-        for s in segs:
-            mask |= (ss.t >= float(s["session_start_sec"])) & (
-                ss.t < float(s["session_end_sec"])
-            )
+        for a, b in spans:
+            mask |= (ss.t >= a) & (ss.t < b)
         if mask.sum() * GRID_SEC < min_task_sec:
             continue
-        t0 = min(float(s["session_start_sec"]) for s in segs)
-        t1 = max(float(s["session_end_sec"]) for s in segs)
         if halves:
             # Two independent estimates of the same cell, for split-half
             # reliability. Splitting by time rather than by alternating
             # frames keeps each half a real stretch of interaction, which
             # the windowed and recurrence measures require.
             for h, hm in enumerate(_halves(mask)):
-                ht = ss.t[hm]
                 row = {"participant_id": norm, "task_id": tid, "half": h}
                 row.update(_meta(ss, hm))
-                row.update(
-                    _window_features(ss, speech, hm, float(ht[0]), float(ht[-1]))
-                )
+                row.update(_window_features(ss, speech, hm, _mask_spans(ss.t, hm)))
                 rows.append(row)
             continue
         row: dict[str, Any] = {"participant_id": norm, "task_id": tid}
         row.update(_meta(ss, mask))
-        row.update(_window_features(ss, speech, mask, t0, t1))
+        row["n_task_spans"] = float(len(spans))
+        row.update(_window_features(ss, speech, mask, spans))
         rows.append(row)
 
     # Session row: the union of the identified tasks, not the raw recording,
     # so waiting and setup time stays out.
+    sspans = merge_spans(
+        [
+            (float(s["session_start_sec"]), float(s["session_end_sec"]))
+            for s in segments
+        ]
+    )
     smask = np.zeros(ss.n, bool)
-    for s in segments:
-        smask |= (ss.t >= float(s["session_start_sec"])) & (
-            ss.t < float(s["session_end_sec"])
-        )
+    for a, b in sspans:
+        smask |= (ss.t >= a) & (ss.t < b)
     sess: dict[str, Any] = {"participant_id": norm, "task_id": -1}
     if smask.any():
-        t0 = min(float(s["session_start_sec"]) for s in segments)
-        t1 = max(float(s["session_end_sec"]) for s in segments)
         sess.update(_meta(ss, smask))
-        sess.update(_window_features(ss, speech, smask, t0, t1))
+        sess.update(_window_features(ss, speech, smask, sspans))
     return rows, sess
 
 
