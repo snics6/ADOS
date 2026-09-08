@@ -17,7 +17,15 @@ from scipy.stats import rankdata
 
 from ados_extract.dynamics.conversation import chain_initiator_features
 from ados_extract.task_segments import load_task_segments_map, merge_spans
-from ados_ffm.data import ROOT, TASK_JA, TASKS, load_cohort, load_labels, apply_target_y
+from ados_ffm.data import (
+    ROOT,
+    TASK_EN,
+    TASK_JA,
+    TASKS,
+    apply_target_y,
+    load_cohort,
+    load_labels,
+)
 from ados_ffm.exp1_univariate import spearman_rho_fast
 from ados_ffm.hetero import lambda_star
 
@@ -114,20 +122,6 @@ def duration_by_task(dyn: pd.DataFrame, cohort: list[str]) -> pd.DataFrame:
 SEED_INIT = 91001
 N_BOOT_INIT = 2000
 RHO_MIN_UNSEL = 0.20
-
-TASK_EN = {
-    1: "1 construct",
-    2: "2 pretend",
-    3: "3 JA",
-    4: "4 demo",
-    5: "5 picture",
-    6: "6 book",
-    7: "7 free play",
-    8: "8 birthday",
-    9: "9 snack",
-    10: "10 routine",
-}
-
 
 def duration_wide(dyn: pd.DataFrame, cohort: list[str]) -> pd.DataFrame:
     d = dyn[dyn["participant_id"].astype(str).isin(cohort)].copy()

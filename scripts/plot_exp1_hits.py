@@ -26,6 +26,7 @@ from ados_ffm.data import (  # noqa: E402
     DEFAULT_FEATURES,
     DEFAULT_WINDOWS,
     TARGETS,
+    TASK_EN,
     load_cohort,
     load_features,
     load_labels,
@@ -36,22 +37,6 @@ from ados_ffm.exp1_univariate import (  # noqa: E402
     merge_task_catalog,
     y_map_for_task,
 )
-
-# English ADOS Module 2 task names (avoid CJK fonts).
-TASK_EN: dict[int, str] = {
-    1: "Construction",
-    2: "Response to Name",
-    3: "Pretend+Joint Play",
-    4: "Joint Interactive Play",
-    6: "Response to Joint Attention",
-    7: "Demonstration",
-    8: "Picture+Book",
-    9: "Telling a Story from a Book",
-    11: "Birthday+Snack",
-    12: "Snack",
-    13: "Routine with Objects",
-}
-
 
 def _safe_name(text: str) -> str:
     out = []
@@ -91,7 +76,7 @@ def _plot_one(row: pd.Series, pl: dict, out_path: Path) -> None:
     x = np.asarray(pl["x"], dtype=float)
     y = np.asarray(pl["y"], dtype=float)
     tid = int(row["task"])
-    task_en = TASK_EN.get(tid, f"Activity {tid}")
+    task_en = TASK_EN.get(tid, str(tid))
     feature = str(row["feature"])
     target = str(row["target"])
     source = str(row["source"])
@@ -102,7 +87,7 @@ def _plot_one(row: pd.Series, pl: dict, out_path: Path) -> None:
     fig, ax = plt.subplots(figsize=(6.2, 4.8))
     ax.scatter(x, y, s=28, alpha=0.75, edgecolors="none", color="#1f4e79")
     ax.set_title(
-        f"Activity {tid}: {task_en}  |  {target}\n{feature}  ({source})",
+        f"Activity {task_en}  |  {target}\n{feature}  ({source})",
         fontsize=10,
     )
     ax.set_xlabel(feature)

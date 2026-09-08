@@ -26,6 +26,20 @@ TASK_JA: dict[int, str] = {
     10: "ルーティン",
 }
 
+# 図表用の英語表記（CJK フォントを必要としない場面で使う）.
+TASK_EN: dict[int, str] = {
+    1: "1 construct",
+    2: "2 pretend",
+    3: "3 JA",
+    4: "4 demo",
+    5: "5 picture",
+    6: "6 book",
+    7: "7 free play",
+    8: "8 birthday",
+    9: "9 snack",
+    10: "10 routine",
+}
+
 STEMS: tuple[str, ...] = (
     "speech_frac",
     "turn_rate_per_min",
